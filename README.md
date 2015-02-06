@@ -1,2 +1,2 @@
-# validation
+# go-validation
 Go validation library
