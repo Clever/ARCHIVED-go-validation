@@ -47,7 +47,7 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 		case reflect.Slice:
 			override = r.opts[AllowEmptySlice]
 		}
-		return r.collectionLengthOK(kind.String(), reflect.ValueOf(value), override)
+		return r.collectionLengthValid(kind.String(), reflect.ValueOf(value), override)
 	}
 
 	// Default case
@@ -63,8 +63,8 @@ func (r *Required) stringIsValid(value string) (bool, []error) {
 	}
 }
 
-// collectionLengthOK returns true if it contains a value (ie, nonempty). False if empty, unless the option is set.
-func (r *Required) collectionLengthOK(colType string, value reflect.Value, override bool) (bool, []error) {
+// collectionLengthValid returns true if it contains a value (ie, nonempty). False if empty, unless the option is set.
+func (r *Required) collectionLengthValid(colType string, value reflect.Value, override bool) (bool, []error) {
 	if value.Len() > 0 || override {
 		return true, nil
 	} else {
