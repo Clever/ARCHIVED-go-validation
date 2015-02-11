@@ -28,7 +28,7 @@ func (r *Required) SetOpts(opts map[Option]bool) {
 // IsValid determines if the given value satisfies a "Required" rule.
 func (r *Required) IsValid(value interface{}) (bool, []error) {
 	if value == nil {
-		return false, singleErrorSlice("nil is not a valid value for Required")
+		return false, singleErrorSlice("nil", value)
 	}
 
 	kind := reflect.TypeOf(value).Kind()
@@ -47,11 +47,11 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 		case reflect.Slice:
 			override = r.opts[AllowEmptySlice]
 		}
-		return r.collectionLengthOK(kind.String(), reflect.ValueOf(value).Len(), override)
+		return r.collectionLengthOK(kind.String(), reflect.ValueOf(value), override)
 	}
 
 	// Default case
-	return false, singleErrorSlice("Cannot handle value(%v)", value)
+	return false, singleErrorSlice("Unknown", value)
 }
 
 // stringIsValid ensures a string is valid (Not empty after trimming)
@@ -59,20 +59,20 @@ func (r *Required) stringIsValid(value string) (bool, []error) {
 	if strings.TrimSpace(value) != "" || r.opts[AllowEmptyString] {
 		return true, nil
 	} else {
-		return false, singleErrorSlice("String value(%v) doesnt not satisfy Required", value)
+		return false, singleErrorSlice("String", value)
 	}
 }
 
 // collectionLengthOK returns true if it contains a value (ie, nonempty). False if empty, unless the option is set.
-func (r *Required) collectionLengthOK(colType string, length int, override bool) (bool, []error) {
-	if length > 0 || override {
+func (r *Required) collectionLengthOK(colType string, value reflect.Value, override bool) (bool, []error) {
+	if value.Len() > 0 || override {
 		return true, nil
 	} else {
-		return false, singleErrorSlice("%s length(%d) does not satisfy Required(override=%t)", colType, length, override)
+		return false, singleErrorSlice(colType, value)
 	}
 }
 
 // singleErrorSlice is a helper to match the interface []error
-func singleErrorSlice(e string, args ...interface{}) []error {
-	return append(make([]error, 0), fmt.Errorf(e, args...))
+func singleErrorSlice(args ...interface{}) []error {
+	return append(make([]error, 0), fmt.Errorf("%s value(%v) is not a valid value for Required", args...))
 }
