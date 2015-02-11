@@ -74,5 +74,5 @@ func (r *Required) collectionLengthOK(colType string, value reflect.Value, overr
 
 // singleErrorSlice is a helper to match the interface []error
 func singleErrorSlice(args ...interface{}) []error {
-	return append(make([]error, 0), fmt.Errorf("%s value(%v) is not a valid value for Required", args...))
+	return []error{fmt.Errorf("%s value(%v) is not a valid value for Required", args...)}
 }
