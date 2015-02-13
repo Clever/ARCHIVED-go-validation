@@ -6,23 +6,13 @@ import (
 	"strings"
 )
 
-type Option uint8
-
-const (
-	// Allows empty string, array or map. Default is false
-	AllowEmptyString Option = iota
-	AllowEmptyArray
-	AllowEmptyMap
-	AllowEmptySlice
-)
-
-// Required Validator is very simple
+// Required Validator ensures a field is "present", certain "falsey" values are handled by
+// boolean options (eg AllowEmptyArray). They all default to deny (eg, deny empty strings)
 type Required struct {
-	opts map[Option]bool
-}
-
-func (r *Required) SetOpts(opts map[Option]bool) {
-	r.opts = opts
+	AllowEmptyString bool
+	AllowEmptyArray  bool
+	AllowEmptyMap    bool
+	AllowEmptySlice  bool
 }
 
 // IsValid determines if the given value satisfies a "Required" rule.
@@ -38,15 +28,18 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 	case reflect.String:
 		return r.stringIsValid(value.(string))
 	case reflect.Map, reflect.Array, reflect.Slice:
+
+		// Decide if we'll allow an empty collection
 		var override bool
 		switch kind {
 		case reflect.Map:
-			override = r.opts[AllowEmptyMap]
+			override = r.AllowEmptyMap
 		case reflect.Array:
-			override = r.opts[AllowEmptyArray]
+			override = r.AllowEmptyArray
 		case reflect.Slice:
-			override = r.opts[AllowEmptySlice]
+			override = r.AllowEmptySlice
 		}
+
 		return r.collectionLengthValid(kind.String(), reflect.ValueOf(value), override)
 	}
 
@@ -56,7 +49,7 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 
 // stringIsValid ensures a string is valid (Not empty after trimming)
 func (r *Required) stringIsValid(value string) (bool, []error) {
-	if strings.TrimSpace(value) != "" || r.opts[AllowEmptyString] {
+	if strings.TrimSpace(value) != "" || r.AllowEmptyString {
 		return true, nil
 	} else {
 		return false, singleErrorSlice("String", value)

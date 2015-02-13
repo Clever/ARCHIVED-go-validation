@@ -6,9 +6,9 @@ import (
 )
 
 type testCase struct {
-	Value    interface{}
-	Options  map[Option]bool
-	Expected bool
+	Validator *Required
+	Value     interface{}
+	Expected  bool
 }
 
 var requiredCases = [...]testCase{
@@ -18,7 +18,7 @@ var requiredCases = [...]testCase{
 	},
 	testCase{
 		Value: "",
-		Options: map[Option]bool{
+		Validator: &Required{
 			AllowEmptyString: true,
 		},
 		Expected: true,
@@ -36,9 +36,9 @@ var requiredCases = [...]testCase{
 		Expected: false,
 	},
 	testCase{
-		Value:    "    ",
-		Options:  map[Option]bool{AllowEmptyString: true},
-		Expected: true,
+		Value:     "    ",
+		Validator: &Required{AllowEmptyString: true},
+		Expected:  true,
 	},
 	testCase{
 		Value:    "testing   ",
@@ -72,7 +72,7 @@ var requiredCases = [...]testCase{
 	testCase{
 		// Empty Array, with option
 		Value: [...]interface{}{},
-		Options: map[Option]bool{
+		Validator: &Required{
 			AllowEmptyArray: true,
 		},
 		Expected: true,
@@ -101,7 +101,7 @@ var requiredCases = [...]testCase{
 	testCase{
 		// Empty Slice, w/ option
 		Value: []interface{}{},
-		Options: map[Option]bool{
+		Validator: &Required{
 			AllowEmptySlice: true,
 		},
 		Expected: true,
@@ -118,9 +118,9 @@ var requiredCases = [...]testCase{
 	},
 	testCase{
 		// empty map literal, with option
-		Value:    map[int]bool{},
-		Options:  map[Option]bool{AllowEmptyMap: true},
-		Expected: true,
+		Value:     map[int]bool{},
+		Validator: &Required{AllowEmptyMap: true},
+		Expected:  true,
 	},
 	testCase{
 		Value:    map[int]bool{1: true, 2: false},
@@ -129,16 +129,17 @@ var requiredCases = [...]testCase{
 }
 
 func TestRequired(t *testing.T) {
-	rv := Required{}
 
 	for _, c := range requiredCases {
-		rv.SetOpts(c.Options)
-		valid, errors := rv.IsValid(c.Value)
+		if c.Validator == nil {
+			c.Validator = &Required{}
+		}
+		valid, errors := c.Validator.IsValid(c.Value)
 		assert.Equal(
 			t,
 			c.Expected,
 			valid,
-			"rv.IsValid(%#v) w/ options(%v) returned unexpected answer (%v)", c.Value, c.Options, c.Expected,
+			"c.Validator.IsValid(%#v) w/ returned unexpected answer (%v)", c.Value, c.Expected,
 		)
 		if !c.Expected {
 			assert.Equal(t, 1, len(errors))
