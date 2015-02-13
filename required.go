@@ -21,26 +21,14 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 		return false, singleErrorSlice("nil", value)
 	}
 
-	kind := reflect.TypeOf(value).Kind()
-	switch kind {
+	rvalue := reflect.ValueOf(value)
+	switch rvalue.Kind() {
 	case reflect.Struct, reflect.Bool, reflect.Int, reflect.Float32, reflect.Float64:
 		return true, nil
 	case reflect.String:
 		return r.stringIsValid(value.(string))
 	case reflect.Map, reflect.Array, reflect.Slice:
-
-		// Decide if we'll allow an empty collection
-		var override bool
-		switch kind {
-		case reflect.Map:
-			override = r.AllowEmptyMap
-		case reflect.Array:
-			override = r.AllowEmptyArray
-		case reflect.Slice:
-			override = r.AllowEmptySlice
-		}
-
-		return r.collectionLengthValid(kind.String(), reflect.ValueOf(value), override)
+		return r.collectionIsValid(rvalue)
 	}
 
 	// Default case
@@ -56,12 +44,23 @@ func (r *Required) stringIsValid(value string) (bool, []error) {
 	}
 }
 
-// collectionLengthValid returns true if it contains a value (ie, nonempty). False if empty, unless the option is set.
-func (r *Required) collectionLengthValid(colType string, value reflect.Value, override bool) (bool, []error) {
+// collectionIsValid returns true if it contains a value (ie, nonempty). False if empty, unless the option is set.
+func (r *Required) collectionIsValid(value reflect.Value) (bool, []error) {
+	// Decide if we'll allow an empty collection
+	var override bool
+	switch value.Kind() {
+	case reflect.Map:
+		override = r.AllowEmptyMap
+	case reflect.Array:
+		override = r.AllowEmptyArray
+	case reflect.Slice:
+		override = r.AllowEmptySlice
+	}
+
 	if value.Len() > 0 || override {
 		return true, nil
 	} else {
-		return false, singleErrorSlice(colType, value)
+		return false, singleErrorSlice(value.Kind(), value)
 	}
 }
 
