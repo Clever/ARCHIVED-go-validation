@@ -19,7 +19,7 @@ var requiredCases = [...]testCase{
 	testCase{
 		Value: "",
 		Validator: &Required{
-			AllowEmptyString: true,
+			AllowEmpty: true,
 		},
 		Expected: true,
 	},
@@ -37,7 +37,7 @@ var requiredCases = [...]testCase{
 	},
 	testCase{
 		Value:     "    ",
-		Validator: &Required{AllowEmptyString: true},
+		Validator: &Required{AllowEmpty: true},
 		Expected:  true,
 	},
 	testCase{
@@ -73,7 +73,7 @@ var requiredCases = [...]testCase{
 		// Empty Array, with option
 		Value: [...]interface{}{},
 		Validator: &Required{
-			AllowEmptyArray: true,
+			AllowEmpty: true,
 		},
 		Expected: true,
 	},
@@ -102,7 +102,7 @@ var requiredCases = [...]testCase{
 		// Empty Slice, w/ option
 		Value: []interface{}{},
 		Validator: &Required{
-			AllowEmptySlice: true,
+			AllowEmpty: true,
 		},
 		Expected: true,
 	},
@@ -119,7 +119,7 @@ var requiredCases = [...]testCase{
 	testCase{
 		// empty map literal, with option
 		Value:     map[int]bool{},
-		Validator: &Required{AllowEmptyMap: true},
+		Validator: &Required{AllowEmpty: true},
 		Expected:  true,
 	},
 	testCase{

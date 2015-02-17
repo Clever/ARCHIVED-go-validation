@@ -7,12 +7,9 @@ import (
 )
 
 // Required Validator ensures a field is "present", certain "falsey" values are handled by
-// boolean options (eg AllowEmptyArray). They all default to deny (eg, deny empty strings)
+// the AllowEmpty option .
 type Required struct {
-	AllowEmptyString bool
-	AllowEmptyArray  bool
-	AllowEmptyMap    bool
-	AllowEmptySlice  bool
+	AllowEmpty bool
 }
 
 // IsValid determines if the given value satisfies a "Required" rule.
@@ -37,7 +34,7 @@ func (r *Required) IsValid(value interface{}) (bool, []error) {
 
 // stringIsValid ensures a string is valid (Not empty after trimming)
 func (r *Required) stringIsValid(value string) (bool, []error) {
-	if strings.TrimSpace(value) != "" || r.AllowEmptyString {
+	if strings.TrimSpace(value) != "" || r.AllowEmpty {
 		return true, nil
 	} else {
 		return false, singleErrorSlice("String", value)
@@ -50,11 +47,11 @@ func (r *Required) collectionIsValid(value reflect.Value) (bool, []error) {
 	var override bool
 	switch value.Kind() {
 	case reflect.Map:
-		override = r.AllowEmptyMap
+		override = r.AllowEmpty
 	case reflect.Array:
-		override = r.AllowEmptyArray
+		override = r.AllowEmpty
 	case reflect.Slice:
-		override = r.AllowEmptySlice
+		override = r.AllowEmpty
 	}
 
 	if value.Len() > 0 || override {
