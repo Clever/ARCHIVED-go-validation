@@ -134,7 +134,7 @@ func TestRequired(t *testing.T) {
 		if c.Validator == nil {
 			c.Validator = &Required{}
 		}
-		valid, errors := c.Validator.IsValid(c.Value)
+		valid, error := c.Validator.IsValid(c.Value)
 		assert.Equal(
 			t,
 			c.Expected,
@@ -142,7 +142,7 @@ func TestRequired(t *testing.T) {
 			"c.Validator.IsValid(%#v) w/ returned unexpected answer (%v)", c.Value, c.Expected,
 		)
 		if !c.Expected {
-			assert.Equal(t, 1, len(errors))
+			assert.NotNil(t, error)
 		}
 	}
 }
