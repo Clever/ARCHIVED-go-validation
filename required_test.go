@@ -1,14 +1,14 @@
-package validator
+package validation
 
 import (
-	//"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type testCase struct {
-	Value    interface{}
-	Expected bool
+	Validator *Required
+	Value     interface{}
+	Expected  bool
 }
 
 var requiredCases = [...]testCase{
@@ -17,8 +17,15 @@ var requiredCases = [...]testCase{
 		Expected: false,
 	},
 	testCase{
+		Value: "",
+		Validator: &Required{
+			AllowEmpty: true,
+		},
+		Expected: true,
+	},
+	testCase{
 		Value:    struct{}{},
-		Expected: false,
+		Expected: true,
 	},
 	testCase{
 		Value:    nil,
@@ -27,6 +34,11 @@ var requiredCases = [...]testCase{
 	testCase{
 		Value:    "    ",
 		Expected: false,
+	},
+	testCase{
+		Value:     "    ",
+		Validator: &Required{AllowEmpty: true},
+		Expected:  true,
 	},
 	testCase{
 		Value:    "testing   ",
@@ -53,8 +65,26 @@ var requiredCases = [...]testCase{
 		Expected: true,
 	},
 	testCase{
+		// Empty Array
 		Value:    [...]interface{}{},
 		Expected: false,
+	},
+	testCase{
+		// Empty Array, with option
+		Value: [...]interface{}{},
+		Validator: &Required{
+			AllowEmpty: true,
+		},
+		Expected: true,
+	},
+	testCase{
+		// Array w/ 3 empty structs
+		Value: [...]interface{}{
+			struct{}{},
+			struct{}{},
+			struct{}{},
+		},
+		Expected: true,
 	},
 	testCase{
 		Value: [...]interface{}{
@@ -63,14 +93,56 @@ var requiredCases = [...]testCase{
 		},
 		Expected: true,
 	},
+	testCase{
+		// Empty Slice
+		Value:    []interface{}{},
+		Expected: false,
+	},
+	testCase{
+		// Empty Slice, w/ option
+		Value: []interface{}{},
+		Validator: &Required{
+			AllowEmpty: true,
+		},
+		Expected: true,
+	},
+	testCase{
+		// Full slice
+		Value:    []uint{1, 3, 4, 63434},
+		Expected: true,
+	},
+	testCase{
+		// empty map literal
+		Value:    map[int]bool{},
+		Expected: false,
+	},
+	testCase{
+		// empty map literal, with option
+		Value:     map[int]bool{},
+		Validator: &Required{AllowEmpty: true},
+		Expected:  true,
+	},
+	testCase{
+		Value:    map[int]bool{1: true, 2: false},
+		Expected: true,
+	},
 }
 
-func TestRequiredValidator(t *testing.T) {
-	rv := RequiredValidator{}
+func TestRequired(t *testing.T) {
 
 	for _, c := range requiredCases {
-		valid, errors := rv.IsValid(c.Value)
-		assert.Equal(t, c.Expected, valid)
-		assert.Equal(t, 1, len(errors))
+		if c.Validator == nil {
+			c.Validator = &Required{}
+		}
+		valid, error := c.Validator.IsValid(c.Value)
+		assert.Equal(
+			t,
+			c.Expected,
+			valid,
+			"c.Validator.IsValid(%#v) w/ returned unexpected answer (%v)", c.Value, c.Expected,
+		)
+		if !c.Expected {
+			assert.NotNil(t, error)
+		}
 	}
 }
